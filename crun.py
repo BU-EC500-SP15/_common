@@ -1272,6 +1272,64 @@ class crun_mosixbash(crun):
         return crun.__call__(self, str_cmd)
 
 
+class crun_hpc_moc(crun_hpc):
+
+    def __init__(self, **kwargs):
+        crun_hpc.__init__(self, **kwargs)
+
+        self._str_FSdevsource           = '. ~/arch/scripts/nmr-fs dev >/dev/null'
+        self._str_FSstablesource        = '. ~/arch/scripts/nmr-fs stable >/dev/null'
+
+        self._str_clusterName           = "moc"
+        self._str_clusterType           = "moc"
+        self._str_clusterScheduler      = 'bash'
+
+        self._b_emailWhenDone           = False
+
+        self._str_emailUser             = "rudolph"
+        if len(self._str_remoteUser):
+            self._str_jobInfoDir    = "/pbs/%s" % self._str_remoteUser
+        else:
+            self._str_jobInfoDir    = "/pbs/%s" % self._str_emailUser
+        self._b_singleQuoteCmd          = True
+        self._str_queue                 = "max200"
+
+        self._priority                  = 50
+        self._str_scheduler             = '/home/chris/src/rabbitmq/chris_scheduler.py'
+        self._str_scheduleCmd           = ''
+        self._str_scheduleArgs          = ''
+
+	#configuration
+        self._b_detach = False
+        self._b_disassociate = False
+        self._b_waitForChild = True
+
+    def __call__(self, str_cmd, **kwargs):
+        self.scheduleArgs()
+        if len(self._str_workingDir):
+            str_cmd = "cd %s ; %s" % (self._str_workingDir, str_cmd)
+        self._str_scheduleCmd       = self._str_scheduler
+        out = crun.__call__(self, str_cmd, **kwargs)
+        return out
+
+    def jobID(self):
+        return self._str_jobID
+
+    def scheduleArgs(self, *args):
+        self._str_scheduleArgs = ''
+        self._str_scheduleArgs += " -r %s -u %s -f %s -c " % (
+               self._str_remoteHost, self._str_remoteUser, self._str_schedulerStdOutDir)
+        return self._str_scheduleArgs
+
+    def queueInfo(self, **kwargs):
+        return ""
+
+    def killJob(self, jobID=None):
+        cmd_list = super(crun_hpc_launchpad, self)._buildKillCmd('qdel ', jobID)
+        for cmd in cmd_list:
+            self.__call__(cmd)
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="crun is functor family of scripts for running \
@@ -1280,7 +1338,7 @@ if __name__ == '__main__':
     parser.add_argument("--host", help="connection host")
     parser.add_argument("-s", "--scheduler", help="cluster scheduler type: \
         crun_hpc_launchpad, crun_hpc_slurm, crun_hpc_chpc, crun_hpc_lsf, crun_hpc_lsf_crit \
-        crun_hpc_mosix, crun_hpc_mosix_HPtest, crun_hpc_mosixbash")
+        crun_hpc_mosix, crun_hpc_mosix_HPtest, crun_hpc_mosixbash, crun_hpc_moc")
     parser.add_argument("-o", "--out", help="remote standard output file")
     parser.add_argument("-e", "--err", help="remote standard error file")
     parser.add_argument("-m", "--mail", help="user mail")
