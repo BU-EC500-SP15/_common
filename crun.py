@@ -1286,13 +1286,13 @@ class crun_hpc_moc(crun_hpc):
 
         self._b_emailWhenDone           = False
 
-        self._str_emailUser             = "rudolph"
+        self._str_emailUser             = ''
         if len(self._str_remoteUser):
             self._str_jobInfoDir    = "/pbs/%s" % self._str_remoteUser
         else:
             self._str_jobInfoDir    = "/pbs/%s" % self._str_emailUser
         self._b_singleQuoteCmd          = True
-        self._str_queue                 = "max200"
+        self._str_queue                 = ''
 
         self._priority                  = 50
         self._str_scheduler             = '/home/chris/src/rabbitmq/chris_scheduler.py'
